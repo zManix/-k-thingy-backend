@@ -8,9 +8,11 @@ import * as os from 'os';
 import * as pk from 'pkginfo';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
+
 // Read package.json and add it to module.exports
 pk(module);
 
+// Server and API configurations from environment variables
 const serverProtocol = process.env.SERVER_PROTOCOL || 'http';
 const httpInterface = process.env.SERVER_LISTEN_ON || '0.0.0.0';
 const accessServer = process.env.URI_SERVER || os.hostname();
@@ -27,8 +29,7 @@ const authorInfo = module.exports.author.split('|'); // Split author information
 const licenseInfo = module.exports.license.split('|'); // Split license information
 
 async function bootstrap() {
-  const logger = new Logger('bootstrap');
-
+  const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule, { cors: true });
 
   // Swagger configuration
@@ -36,9 +37,9 @@ async function bootstrap() {
     .setTitle(name)
     .setDescription(description)
     .setVersion(version)
-    .setContact(authorInfo[0], authorInfo[1], authorInfo[2]) // Corrected to setContact
-    .setLicense(licenseInfo[0], licenseInfo[1])
-    .addBearerAuth() // Add JWT Bearer Authentication
+    .setContact(authorInfo[0], authorInfo[1], authorInfo[2]) // Contact details from package.json
+    .setLicense(licenseInfo[0], licenseInfo[1] || '') // License info from package.json
+    .addBearerAuth() // Adds Bearer Authentication button in Swagger UI
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerOptions);
@@ -51,9 +52,9 @@ async function bootstrap() {
   await app.listen(port, httpInterface);
 
   logger.debug(`Server is running at: ${serverProtocol}://${accessServer}:${port}`);
-  logger.debug(
-    `API documentation available at: ${serverProtocol}://${accessServer}:${port}/${apiName}`,
-  );
+  logger.debug(`API documentation available at: ${serverProtocol}://${accessServer}:${port}/${apiName}`);
+  logger.debug(`API JSON documentation available at: ${serverProtocol}://${accessServer}:${port}/${apiName}-json`);
 }
+
 
 bootstrap().finally();

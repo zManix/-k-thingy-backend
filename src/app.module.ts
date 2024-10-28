@@ -7,6 +7,10 @@ import { AuthModule } from './sample/modules/auth/auth.module';
 import { RootModule } from './sample/modules/root/root.module';
 import { ResetModule } from './sample/modules/reset/reset.module';
 
+// Import entities
+import { ArticleEntity } from './sample/modules/article/entities/article.entity';
+
+
 @Module({
   imports: [
     ArticleModule,
@@ -15,14 +19,13 @@ import { ResetModule } from './sample/modules/reset/reset.module';
     ResetModule,
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
-        type: 'better-sqlite3',
+        type: 'better-sqlite3',  // Adjust this if you are using a different DB
         database: process.env.DATABASE_NAME || 'database/api.db',
-        dropSchema: true,
-        entities: [],
-        autoLoadEntities: true,
+        dropSchema: true,  // WARNING: Do not use in production; this will drop and recreate tables on each run
+        entities: [ArticleEntity],  // Add your entities here
+        autoLoadEntities: true,  // Automatically load entities from the imports
         logging: process.env.DATABASE_LOG?.toLowerCase() === 'true' || false,
-        // todo: achtung nicht benutzen in der Produktion
-        synchronize: true,
+        synchronize: true,  // WARNING: Set to false in production
       }),
     }),
   ],
