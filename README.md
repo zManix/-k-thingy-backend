@@ -42,4 +42,4 @@ Ersteller:
 etc.
 
 ## Fazit
-.... hier kommt dein Fazit zur Aufgabe rein
+Most things went pretty quickly from the beginning on, i saved a ton of time on the swagger stuff and the apis showing up at all since ive already worked on this type of stuff before, i lost literal hours on the last part with all the testing stuff especially all the e2e testing.
