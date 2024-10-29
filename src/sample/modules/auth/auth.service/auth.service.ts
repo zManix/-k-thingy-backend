@@ -1,44 +1,40 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { UserService } from '../user.service/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { BearerDto } from '../../../generic.dtos/bearer.dto';
-import { LoginDto } from '../../../generic.dtos/login.dto';
-import { BaseService } from '../../../base/base.service';
-import { UserEntity } from '../../../generic.dtos/userDtoAndEntity';
+import { LoginDto } from '../../article/dto/login.dto';
+import { UserEntity } from '../../article/entities/user.entity';
 
 @Injectable()
-export class AuthService extends BaseService {
+export class AuthService {
   constructor(
-    private usersService: UserService,
-    private jwtService: JwtService,
-  ) {
-    super('AuthService');
-  }
-  async validateUser(corrId: number, username: string): Promise<UserEntity> {
-    const methodName = 'validUser()';
-    this.wl(corrId, methodName, `username: ${username}`);
-    const user = await this.usersService.findOne(username);
-    if (user) {
-      this.wl(corrId, methodName, 'Successfully check the user!');
-      return user;
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService
+  ) {}
+
+  async validateUser(username: string): Promise<UserEntity> {
+    const user = await this.userService.findOne(username);
+    if (!user) {
+      throw new BadRequestException('Invalid credentials');
     }
-    const msg = 'Username is wrong!';
-    this.wl(corrId, methodName, msg);
-    throw new BadRequestException(msg);
+    return user;
   }
-  async login(corrId: number, loginDto: LoginDto): Promise<BearerDto> {
-    const methodName = 'login.controller()';
-    this.wl(corrId, methodName, `username: ${loginDto.username}, password: ${loginDto.password}`);
-    const user = await this.usersService.findOne(loginDto.username);
-    if (user && user.password === loginDto.password) {
-      const payload = { username: user.username, sub: user.userId, roles: user.roles };
-      this.wl(corrId, methodName, 'Successfully check the user and the password!');
-      return {
-        token: this.jwtService.sign(payload),
-      };
+
+  async login(loginDto: LoginDto): Promise<BearerDto> {
+    const user = await this.validateUser(loginDto.username);
+    if (user.password !== loginDto.password) {
+      throw new BadRequestException('Invalid credentials');
     }
-    const msg = 'Username or password is wrong!';
-    this.wl(corrId, methodName, msg);
-    throw new BadRequestException(msg);
+    const payload = { username: user.username, sub: user.id };
+    return { token: this.jwtService.sign(payload) };
+  }
+
+  async deleteUser(id: number): Promise<boolean> {
+    const user = await this.userService.findById(id);
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    await this.userService.remove(id);
+    return true;
   }
 }

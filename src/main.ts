@@ -1,21 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Set global prefix for the API, if desired
-  const apiPrefix = process.env.API_NAME || 'api';
-  app.setGlobalPrefix(apiPrefix);
+  // Enable Swagger
+  const config = new DocumentBuilder()
+    .setTitle('API Documentation')
+    .setDescription('API for the application')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
 
-  // Retrieve port and host information from environment variables
-  const port = parseInt(process.env.SERVER_PORT || '3000', 10);
-  const host = process.env.SERVER_LISTEN_ON || '0.0.0.0';
-
-  await app.listen(port, host, () => {
-    Logger.log(`Server is running at http://${host}:${port}/${apiPrefix}`);
-  });
+  // Start the app on the configured port
+  await app.listen(3000);
 }
-
 bootstrap();

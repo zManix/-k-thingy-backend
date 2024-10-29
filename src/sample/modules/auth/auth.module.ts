@@ -9,7 +9,7 @@ import { ProfileController } from './profile.controller/profile.controller';
 import { UserService } from './user.service/user.service';
 import { Security } from '../../../security';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../article/entities/user.entity'; // Updated path for the User entity
+import { UserEntity } from '../article/entities/user.entity';
 
 @Module({
   imports: [
@@ -18,7 +18,7 @@ import { User } from '../article/entities/user.entity'; // Updated path for the 
       secret: process.env.JWT_SECRET || Security.secret,
       signOptions: { expiresIn: `${parseInt(process.env.JWT_EXPIRES_IN_S || '60', 10)}s` },
     }),
-    TypeOrmModule.forFeature([User]), // Register User entity for this module
+    TypeOrmModule.forFeature([UserEntity]), // Register User entity for this module
   ],
   controllers: [AuthController, ProfileController],
   providers: [AuthService, UserService, JwtStrategy],

@@ -1,71 +1,47 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user.service/user.service';
+import { JwtService } from '@nestjs/jwt';
 import { BadRequestException } from '@nestjs/common';
-
-class JwtServiceMockup {
-  sign() {
-    return {
-      token: 'a mockup token',
-    };
-  }
-}
+import { LoginDto } from '../../article/dto/login.dto';
 
 describe('AuthService', () => {
   let service: AuthService;
+  let userService: Partial<UserService>;
+  let jwtService: Partial<JwtService>;
 
   beforeEach(async () => {
+    userService = {
+      findOne: jest.fn(),
+      findById: jest.fn(),
+      remove: jest.fn(),
+    };
+    jwtService = {
+      sign: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UserService, AuthService, { provide: JwtService, useClass: JwtServiceMockup }],
+      providers: [
+        AuthService,
+        { provide: UserService, useValue: userService },
+        { provide: JwtService, useValue: jwtService },
+      ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  it('should validate a user', async () => {
+    const mockUser = { id: 1, username: 'test', password: 'password' };
+    (userService.findOne as jest.Mock).mockResolvedValue(mockUser);
+
+    const result = await service.validateUser('test');
+    expect(result).toEqual(mockUser);
   });
 
-  describe('validateUser Methods', () => {
-    it('validateUser user hardcoded', async () => {
-      expect(await service.validateUser(0, 'user')).toEqual({
-        userId: 1,
-        username: 'user',
-        password: '12345',
-        roles: ['user'],
-      });
-    });
-    it('validateUser admin hardcoded', async () => {
-      expect(await service.validateUser(0, 'admin')).toEqual({
-        userId: 2,
-        username: 'admin',
-        password: '12345',
-        roles: ['user', 'admin'],
-      });
-    });
-    it('validateUser wrong user', async () => {
-      try {
-        await service.validateUser(0, 'wrongUser');
-      } catch (err: any) {
-        expect(err instanceof BadRequestException).toEqual(true);
-        expect(err.message).toBe('Username is wrong!');
-      }
-    });
-  });
+  it('should throw an error if credentials are invalid', async () => {
+    (userService.findOne as jest.Mock).mockResolvedValue(null);
 
-  describe('login', () => {
-    it('login successfully', async () => {
-      const obj = await service.login(0, { username: 'user', password: '12345' });
-      expect(obj.token).toEqual({ token: 'a mockup token' });
-    });
-    it('login wrong user', async () => {
-      try {
-        await service.login(0, { username: 'wrong', password: '12345' });
-      } catch (err: any) {
-        expect(err instanceof BadRequestException).toEqual(true);
-        expect(err.message).toEqual('Username or password is wrong!');
-      }
-    });
+    await expect(service.validateUser('invalid')).rejects.toThrow(BadRequestException);
   });
 });

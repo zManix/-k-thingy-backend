@@ -1,24 +1,23 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiOkResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { BaseController } from '../../../base/base.controller';
+import { Controller, Post, Body, Param, Delete, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from '../auth.service/auth.service';
-import { ErrorDto } from '../../../generic.dtos/error.dto';
+import { LoginDto } from '../../article/dto/login.dto';
 import { BearerDto } from '../../../generic.dtos/bearer.dto';
-import { LoginDto } from '../../../generic.dtos/login.dto';
-import { CorrId } from '../../../decorators/correlation-id/correlation-id.decorator';
+import { UserEntity } from '../../article/entities/user.entity';
 
 @Controller('auth')
-@ApiTags('Auth Methods')
-@ApiBearerAuth()
-export class AuthController extends BaseController {
-  constructor(private authService: AuthService) {
-    super('AuthController');
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Post('login')
+  async login(@Body() loginDto: LoginDto): Promise<BearerDto> {
+    return this.authService.login(loginDto);
   }
 
-  @ApiOkResponse({ description: 'The user has logged in, and get back the bearer info!', type: BearerDto })
-  @ApiBadRequestResponse({ description: 'When the user does not exist or the password is wrong!', type: ErrorDto })
-  @Post('login')
-  async login(@CorrId() corrId: number, @Body() loginDto: LoginDto): Promise<BearerDto> {
-    return this.authService.login(corrId, loginDto);
+  @Delete('user/:id')
+  async deleteUser(@Param('id') id: number, @Body() user: UserEntity): Promise<boolean> {
+    if (user.role !== 'admin') {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    return this.authService.deleteUser(id);
   }
 }

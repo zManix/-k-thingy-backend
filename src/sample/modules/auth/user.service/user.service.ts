@@ -1,24 +1,23 @@
-import { Injectable } from '@nestjs/common';
-import { UserEntity } from '../../../generic.dtos/userDtoAndEntity';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { UserEntity } from '../../article/entities/user.entity';
 
 @Injectable()
 export class UserService {
-  private readonly users: UserEntity[] = [
-    {
-      userId: 1,
-      username: 'user',
-      password: '12345',
-      roles: ['user'],
-    },
-    {
-      userId: 2,
-      username: 'admin',
-      password: '12345',
-      roles: ['user', 'admin'],
-    },
-  ];
+  private users: UserEntity[] = []; // Mock database
 
-  async findOne(username: string): Promise<UserEntity | undefined> {
-    return this.users.find((user) => user.username === username);
+  findOne(username: string): UserEntity | undefined {
+    return this.users.find(user => user.username === username);
+  }
+
+  findById(id: number): UserEntity | undefined {
+    return this.users.find(user => user.id === id);
+  }
+
+  remove(id: number): void {
+    const index = this.users.findIndex(user => user.id === id);
+    if (index === -1) {
+      throw new NotFoundException('User not found');
+    }
+    this.users.splice(index, 1);
   }
 }

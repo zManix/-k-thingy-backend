@@ -2,7 +2,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { IsNotEmpty } from 'class-validator';
 
 @Entity({ name: 'user' })
-export class User {
+export class UserEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -13,4 +13,8 @@ export class User {
   @Column()
   @IsNotEmpty()
   password: string;
+
+  @Column({ default: 'user' })
+  @IsNotEmpty()
+  role: string;
 }
