@@ -2,20 +2,17 @@ import { ApiProperty } from '@nestjs/swagger';
 import { ArticleEntity } from '../entities/article.entity';
 
 export class ArticleReturnDto {
-  @ApiProperty({
-    description: 'The unique id of the todo',
-    minimum: 1,
-    default: 1,
-    example: 1,
-  })
+  @ApiProperty({ description: 'ID of the article' })
   id: number;
-  @ApiProperty({
-    description: 'The name of the article',
-    default: 'mein Artikel',
-    example: 'Beispiel Artikel',
-  })
+
+  @ApiProperty({ description: 'Name of the article' })
   name: string;
+
+  // Static method to convert an ArticleEntity to ArticleReturnDto
   static ConvertEntityToDto(entity: ArticleEntity): ArticleReturnDto {
-    return entity as ArticleReturnDto;
+    const dto = new ArticleReturnDto();
+    dto.id = entity.id;
+    dto.name = entity.name;
+    return dto;
   }
 }
