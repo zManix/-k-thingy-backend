@@ -14,7 +14,7 @@ async function bootstrap() {
     .setContact(
       packageJson.author.split('|')[0].trim(),
       packageJson.author.split('|')[1].trim(),
-      packageJson.author.split('|')[2].trim()
+      packageJson.author.split('|')[2].trim(),
     )
     .setLicense(packageJson.license, 'https://opensource.org/licenses')
     .addBearerAuth()
