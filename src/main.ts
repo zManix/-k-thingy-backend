@@ -1,60 +1,21 @@
-import * as dotenv from 'dotenv'; // Load environment variables
-dotenv.config();
-
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
-import * as os from 'os';
-import * as pk from 'pkginfo';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-
-
-// Read package.json and add it to module.exports
-pk(module);
-
-// Server and API configurations from environment variables
-const serverProtocol = process.env.SERVER_PROTOCOL || 'http';
-const httpInterface = process.env.SERVER_LISTEN_ON || '0.0.0.0';
-const accessServer = process.env.URI_SERVER || os.hostname();
-const port = process.env.SERVER_PORT || 3000;
-
-// Swagger configuration path
-const apiName = process.env.API_NAME || 'api';
-
-// Read metadata from package.json
-const name = module.exports.name;
-const version = module.exports.version;
-const description = module.exports.description;
-const authorInfo = module.exports.author.split('|'); // Split author information
-const licenseInfo = module.exports.license.split('|'); // Split license information
 
 async function bootstrap() {
-  const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule);
 
-  // Swagger configuration
-  const swaggerOptions = new DocumentBuilder()
-    .setTitle(name)
-    .setDescription(description)
-    .setVersion(version)
-    .setContact(authorInfo[0], authorInfo[1], authorInfo[2]) // Contact details from package.json
-    .setLicense(licenseInfo[0], licenseInfo[1] || '') // License info from package.json
-    .addBearerAuth() // Adds Bearer Authentication button in Swagger UI
-    .build();
+  // Set global prefix for the API, if desired
+  const apiPrefix = process.env.API_NAME || 'api';
+  app.setGlobalPrefix(apiPrefix);
 
-  const document = SwaggerModule.createDocument(app, swaggerOptions);
-  SwaggerModule.setup(apiName, app, document);
+  // Retrieve port and host information from environment variables
+  const port = parseInt(process.env.SERVER_PORT || '3000', 10);
+  const host = process.env.SERVER_LISTEN_ON || '0.0.0.0';
 
-  // Serve OpenAPI documentation as JSON at /api-json
-  app.use(`/${apiName}-json`, (req, res) => res.json(document));
-
-  // Start the server
-  await app.listen(port, httpInterface);
-
-  logger.debug(`Server is running at: ${serverProtocol}://${accessServer}:${port}`);
-  logger.debug(`API documentation available at: ${serverProtocol}://${accessServer}:${port}/${apiName}`);
-  logger.debug(`API JSON documentation available at: ${serverProtocol}://${accessServer}:${port}/${apiName}-json`);
+  await app.listen(port, host, () => {
+    Logger.log(`Server is running at http://${host}:${port}/${apiPrefix}`);
+  });
 }
 
-
-bootstrap().finally();
+bootstrap();

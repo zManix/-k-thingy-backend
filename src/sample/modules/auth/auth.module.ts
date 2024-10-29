@@ -11,12 +11,11 @@ import { Security } from '../../../security';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../article/entities/user.entity'; // Updated path for the User entity
 
-
 @Module({
   imports: [
     PassportModule,
     JwtModule.register({
-      secret: Security.secret,
+      secret: process.env.JWT_SECRET || Security.secret,
       signOptions: { expiresIn: `${parseInt(process.env.JWT_EXPIRES_IN_S || '60', 10)}s` },
     }),
     TypeOrmModule.forFeature([User]), // Register User entity for this module
